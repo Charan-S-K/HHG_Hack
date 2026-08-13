@@ -303,8 +303,29 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   const displayRole = (role || 'HACKER / BUILDER').toUpperCase();
   const displayGithub = github ? `@${github.replace(/^@/, '')}` : '@hhgoa2026';
 
-  // 1. Draw base dark background
-  ctx.fillStyle = '#0A0B10';
+  // 1. Draw base dark background with ambient gradients matching the NixtNode reference
+  ctx.fillStyle = '#070810';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Radial glow 1: Soft white/lavender in the center-left
+  const glowWhite = ctx.createRadialGradient(250, 450, 0, 250, 450, 450);
+  glowWhite.addColorStop(0, 'rgba(226, 223, 236, 0.22)');
+  glowWhite.addColorStop(1, 'rgba(7, 8, 16, 0)');
+  ctx.fillStyle = glowWhite;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Radial glow 2: Vibrant purple in the center-right/bottom-right
+  const glowPurple = ctx.createRadialGradient(600, 750, 0, 600, 750, 500);
+  glowPurple.addColorStop(0, 'rgba(157, 78, 221, 0.26)');
+  glowPurple.addColorStop(1, 'rgba(7, 8, 16, 0)');
+  ctx.fillStyle = glowPurple;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Radial glow 3: Indigo in the top-right
+  const glowIndigo = ctx.createRadialGradient(550, 250, 0, 550, 250, 350);
+  glowIndigo.addColorStop(0, 'rgba(99, 102, 241, 0.16)');
+  glowIndigo.addColorStop(1, 'rgba(7, 8, 16, 0)');
+  ctx.fillStyle = glowIndigo;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // 2. Draw tech grid

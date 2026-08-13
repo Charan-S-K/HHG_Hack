@@ -60,7 +60,7 @@ html {
 }
 
 body {
-  background-color: #E2DFEC;
+  background-color: #F3F0FA;
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
