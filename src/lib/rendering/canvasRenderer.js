@@ -58,7 +58,7 @@ export function drawUserPhoto(ctx, img, x, y, width, height, zoom, panX, panY, c
  */
 function drawTechGrid(ctx, x, y, width, height, cellSize = 50) {
   ctx.save();
-  ctx.strokeStyle = 'rgba(0, 242, 254, 0.04)';
+  ctx.strokeStyle = 'rgba(192, 132, 252, 0.04)'; // Lavender grid
   ctx.lineWidth = 1;
 
   // Vertical lines
@@ -78,11 +78,23 @@ function drawTechGrid(ctx, x, y, width, height, cellSize = 50) {
   }
 
   // Diagonal tech line
-  ctx.strokeStyle = 'rgba(255, 90, 95, 0.03)';
+  ctx.strokeStyle = 'rgba(157, 78, 221, 0.03)'; // Purple diagonal
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(x, y + height * 0.7);
   ctx.lineTo(x + width, y + height * 0.2);
+  ctx.stroke();
+
+  // Glowing circular tech vector lines in the background
+  ctx.strokeStyle = 'rgba(157, 78, 221, 0.04)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(x - 50, y - 50, 450, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(99, 102, 241, 0.03)';
+  ctx.beginPath();
+  ctx.arc(x + width + 80, y + height + 50, 600, 0, Math.PI * 2);
   ctx.stroke();
 
   ctx.restore();
@@ -198,12 +210,12 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius + 10, 0, Math.PI * 2);
   const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-  gradient.addColorStop(0, '#FF5A5F'); // Coral
-  gradient.addColorStop(0.5, '#00F2FE'); // Teal
-  gradient.addColorStop(1, '#A7FF37'); // Lime
+  gradient.addColorStop(0, '#9D4EDD'); // Purple
+  gradient.addColorStop(0.5, '#6366F1'); // Indigo
+  gradient.addColorStop(1, '#C084FC'); // Lavender
   ctx.strokeStyle = gradient;
   ctx.lineWidth = 12;
-  ctx.shadowColor = 'rgba(0, 242, 254, 0.4)';
+  ctx.shadowColor = 'rgba(157, 78, 221, 0.4)';
   ctx.shadowBlur = 20;
   ctx.stroke();
   ctx.restore();
@@ -218,7 +230,7 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   ctx.restore();
 
   // Technical crosshairs
-  ctx.strokeStyle = 'rgba(0, 242, 254, 0.6)';
+  ctx.strokeStyle = 'rgba(192, 132, 252, 0.6)';
   ctx.lineWidth = 2;
   
   // Top left notch
@@ -245,7 +257,7 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   // Dark background strip for text legibility
   ctx.fillStyle = 'rgba(10, 11, 16, 0.85)';
   ctx.fillRect(centerX - 180, centerY - radius - 28, 360, 56);
-  ctx.strokeStyle = '#FF5A5F';
+  ctx.strokeStyle = '#9D4EDD';
   ctx.lineWidth = 2;
   ctx.strokeRect(centerX - 180, centerY - radius - 28, 360, 56);
   
@@ -262,11 +274,11 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   // Bottom badge background
   ctx.fillStyle = 'rgba(10, 11, 16, 0.85)';
   ctx.fillRect(centerX - 140, centerY + radius - 26, 280, 52);
-  ctx.strokeStyle = '#00F2FE';
+  ctx.strokeStyle = '#6366F1';
   ctx.lineWidth = 2;
   ctx.strokeRect(centerX - 140, centerY + radius - 26, 280, 52);
 
-  ctx.fillStyle = '#A7FF37'; // Lime accent
+  ctx.fillStyle = '#C084FC'; // Lavender accent
   ctx.fillText('B U I L D E R', centerX, centerY + radius);
   ctx.restore();
 }
@@ -291,8 +303,29 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   const displayRole = (role || 'HACKER / BUILDER').toUpperCase();
   const displayGithub = github ? `@${github.replace(/^@/, '')}` : '@hhgoa2026';
 
-  // 1. Draw base dark background
-  ctx.fillStyle = '#0A0B10';
+  // 1. Draw base dark background with ambient gradients matching the NixtNode reference
+  ctx.fillStyle = '#070810';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Radial glow 1: Soft white/lavender in the center-left
+  const glowWhite = ctx.createRadialGradient(250, 450, 0, 250, 450, 450);
+  glowWhite.addColorStop(0, 'rgba(226, 223, 236, 0.22)');
+  glowWhite.addColorStop(1, 'rgba(7, 8, 16, 0)');
+  ctx.fillStyle = glowWhite;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Radial glow 2: Vibrant purple in the center-right/bottom-right
+  const glowPurple = ctx.createRadialGradient(600, 750, 0, 600, 750, 500);
+  glowPurple.addColorStop(0, 'rgba(157, 78, 221, 0.26)');
+  glowPurple.addColorStop(1, 'rgba(7, 8, 16, 0)');
+  ctx.fillStyle = glowPurple;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Radial glow 3: Indigo in the top-right
+  const glowIndigo = ctx.createRadialGradient(550, 250, 0, 550, 250, 350);
+  glowIndigo.addColorStop(0, 'rgba(99, 102, 241, 0.16)');
+  glowIndigo.addColorStop(1, 'rgba(7, 8, 16, 0)');
+  ctx.fillStyle = glowIndigo;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // 2. Draw tech grid
@@ -304,7 +337,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.lineWidth = 20;
   ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
 
-  ctx.strokeStyle = 'rgba(255, 90, 95, 0.5)'; // Coral inner border
+  ctx.strokeStyle = 'rgba(157, 78, 221, 0.5)'; // Purple inner border
   ctx.lineWidth = 2;
   ctx.strokeRect(25, 25, canvas.width - 50, canvas.height - 50);
   ctx.restore();
@@ -316,7 +349,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.textAlign = 'center';
   ctx.fillText('HH GOA 2026', canvas.width / 2, 95);
 
-  ctx.fillStyle = '#00F2FE'; // Teal subheader
+  ctx.fillStyle = '#C084FC'; // Lavender subheader
   ctx.font = 'bold 22px "Space Mono", monospace';
   ctx.fillText('BUILDER IDENTITY STUDIO', canvas.width / 2, 135);
   ctx.restore();
@@ -359,12 +392,12 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
 
   // Photo frame border
   ctx.save();
-  ctx.strokeStyle = '#00F2FE';
+  ctx.strokeStyle = '#6366F1';
   ctx.lineWidth = 3;
   ctx.strokeRect(photoX, photoY, photoWidth, photoHeight);
 
   // Technical corners on photo frame
-  ctx.fillStyle = '#FF5A5F';
+  ctx.fillStyle = '#9D4EDD';
   ctx.fillRect(photoX - 6, photoY - 6, 20, 6);
   ctx.fillRect(photoX - 6, photoY - 6, 6, 20);
 
@@ -414,7 +447,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.fillText('STACK / ROLE //', 65, detailsY + 135);
 
   // Role value (auto-scale font size if long - max width expanded to 670px)
-  ctx.fillStyle = '#A7FF37'; // Lime accent
+  ctx.fillStyle = '#C084FC'; // Lavender accent
   let roleFontSize = 24;
   ctx.font = `bold ${roleFontSize}px "Space Mono", monospace`;
   while (ctx.measureText(displayRole).width > 670 && roleFontSize > 14) {
@@ -429,7 +462,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
     ctx.font = 'bold 15px "Space Mono", monospace';
     ctx.fillText('BUILDER TITLE //', 65, detailsY + 220);
 
-    ctx.fillStyle = '#FF5A5F'; // Coral accent
+    ctx.fillStyle = '#9D4EDD'; // Purple accent
     let titleFontSize = 22;
     ctx.font = `bold ${titleFontSize}px "Space Mono", monospace`;
     while (ctx.measureText(title).width > 670 && titleFontSize > 14) {
@@ -443,7 +476,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
   ctx.font = 'bold 15px "Space Mono", monospace';
   ctx.fillText('GITHUB //', 65, detailsY + 305);
-  ctx.fillStyle = '#00F2FE'; // Teal accent
+  ctx.fillStyle = '#6366F1'; // Indigo accent
   let ghFontSize = 20;
   ctx.font = `bold ${ghFontSize}px "Space Mono", monospace`;
   while (ctx.measureText(displayGithub).width > 320 && ghFontSize > 12) {
@@ -461,12 +494,12 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.fillText('STATUS //', canvas.width - 65, detailsY + 45);
 
   // Verified Badge (Lime)
-  ctx.fillStyle = '#A7FF37';
+  ctx.fillStyle = '#C084FC';
   ctx.font = '800 22px "Outfit", sans-serif';
   ctx.fillText(status, canvas.width - 65, detailsY + 85);
   
   // Status indicator circle
-  ctx.fillStyle = '#A7FF37';
+  ctx.fillStyle = '#C084FC';
   ctx.beginPath();
   const textLen = ctx.measureText(status).width;
   ctx.arc(canvas.width - 65 - textLen - 16, detailsY + 77, 7, 0, Math.PI * 2);
