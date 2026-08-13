@@ -330,6 +330,8 @@ export default function App() {
           padding: var(--spacing-sm) 0;
           border-bottom: 1px solid var(--color-border);
           margin-bottom: var(--spacing-lg);
+          position: relative;
+          z-index: 1;
         }
 
         .logo-section {
@@ -339,8 +341,8 @@ export default function App() {
         }
 
         .logo-glow {
-          background: rgba(255, 90, 95, 0.1);
-          border: 1px solid rgba(255, 90, 95, 0.25);
+          background: rgba(157, 78, 221, 0.1);
+          border: 1px solid rgba(157, 78, 221, 0.25);
           width: 38px;
           height: 38px;
           border-radius: var(--radius-sm);
@@ -348,7 +350,7 @@ export default function App() {
           align-items: center;
           justify-content: center;
           color: var(--color-accent-coral);
-          box-shadow: 0 0 15px rgba(255, 90, 95, 0.12);
+          box-shadow: 0 0 15px rgba(157, 78, 221, 0.12);
         }
 
         .logo-text {
@@ -363,8 +365,8 @@ export default function App() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: rgba(0, 242, 254, 0.05);
-          border: 1px solid rgba(0, 242, 254, 0.15);
+          background: rgba(192, 132, 252, 0.05);
+          border: 1px solid rgba(192, 132, 252, 0.15);
           padding: 5px 12px;
           border-radius: 50px;
           font-family: var(--font-mono);
@@ -388,6 +390,8 @@ export default function App() {
           align-items: center;
           width: 100%;
           margin-bottom: var(--spacing-xl);
+          position: relative;
+          z-index: 1;
         }
 
         /* Landing Screen Styles */
@@ -645,6 +649,8 @@ export default function App() {
           border-top: 1px solid var(--color-border);
           text-align: center;
           margin-top: auto;
+          position: relative;
+          z-index: 1;
         }
 
         .app-footer p {

@@ -25,6 +25,34 @@
   margin: 20px auto;
   width: calc(100% - 40px);
   min-height: calc(100vh - 40px);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-container::before {
+  content: '';
+  position: absolute;
+  top: -150px;
+  left: -150px;
+  width: 600px;
+  height: 600px;
+  border: 1px solid rgba(157, 78, 221, 0.06);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-container::after {
+  content: '';
+  position: absolute;
+  bottom: -200px;
+  right: -100px;
+  width: 750px;
+  height: 750px;
+  border: 1px solid rgba(99, 102, 241, 0.05);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
 }
 
 @media (min-width: 768px) {

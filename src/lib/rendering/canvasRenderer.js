@@ -58,7 +58,7 @@ export function drawUserPhoto(ctx, img, x, y, width, height, zoom, panX, panY, c
  */
 function drawTechGrid(ctx, x, y, width, height, cellSize = 50) {
   ctx.save();
-  ctx.strokeStyle = 'rgba(0, 242, 254, 0.04)';
+  ctx.strokeStyle = 'rgba(192, 132, 252, 0.04)'; // Lavender grid
   ctx.lineWidth = 1;
 
   // Vertical lines
@@ -78,11 +78,23 @@ function drawTechGrid(ctx, x, y, width, height, cellSize = 50) {
   }
 
   // Diagonal tech line
-  ctx.strokeStyle = 'rgba(255, 90, 95, 0.03)';
+  ctx.strokeStyle = 'rgba(157, 78, 221, 0.03)'; // Purple diagonal
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(x, y + height * 0.7);
   ctx.lineTo(x + width, y + height * 0.2);
+  ctx.stroke();
+
+  // Glowing circular tech vector lines in the background
+  ctx.strokeStyle = 'rgba(157, 78, 221, 0.04)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(x - 50, y - 50, 450, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(99, 102, 241, 0.03)';
+  ctx.beginPath();
+  ctx.arc(x + width + 80, y + height + 50, 600, 0, Math.PI * 2);
   ctx.stroke();
 
   ctx.restore();
