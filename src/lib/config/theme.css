@@ -1,0 +1,54 @@
+:root {
+  /* Color System */
+  --color-bg-dark: #0A0B10;
+  --color-bg-card: rgba(18, 20, 30, 0.65);
+  --color-accent-coral: #FF5A5F;
+  --color-accent-teal: #00F2FE;
+  --color-accent-lime: #A7FF37;
+  
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #8E9AA8;
+  --color-text-muted: #4B5563;
+  
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.16);
+  --color-glow-coral: rgba(255, 90, 95, 0.2);
+  --color-glow-teal: rgba(0, 242, 254, 0.25);
+  
+  /* Fonts */
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+
+  /* Layout and Spacing */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+
+  /* Shadows */
+  --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 30px rgba(255, 90, 95, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
