@@ -7,6 +7,8 @@ export default function ImageControls({
   onResetCrop, 
   onChangeImage, 
   onDownload, 
+  onShare,
+  isSharing = false,
   format 
 }) {
   const handleZoomIn = () => setZoom(z => Math.min(4.0, z + 0.1));
@@ -58,9 +60,9 @@ export default function ImageControls({
           Download Identity
         </button>
         
-        <button className="btn-secondary export-btn" disabled>
+        <button className="btn-secondary export-btn" onClick={onShare} disabled={isSharing}>
           <Share2 size={18} />
-          Share (Coming in Stage 2)
+          {isSharing ? 'Sharing...' : 'Share on X'}
         </button>
       </div>
 

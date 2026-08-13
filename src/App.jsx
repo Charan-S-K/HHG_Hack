@@ -4,7 +4,8 @@ import UploadZone from './components/UploadZone';
 import FormatSelector from './components/FormatSelector';
 import CanvasPreview from './components/CanvasPreview';
 import ImageControls from './components/ImageControls';
-import { ShieldCheck, Flame, Compass } from 'lucide-react';
+import { ShieldCheck, Flame, Compass, Loader } from 'lucide-react';
+import { generateBuilderTitle } from './lib/utils/titleGenerator';
 
 export default function App() {
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -14,12 +15,38 @@ export default function App() {
   const [zoom, setZoom] = useState(1.0);
   const [pan, setPan] = useState({ x: 0, y: 0 });
 
+  // Builder Card fields
+  const [builderName, setBuilderName] = useState('GOA BUILDER');
+  const [builderRole, setBuilderRole] = useState('HACKER / R1');
+  const [builderGithub, setBuilderGithub] = useState('hacker-goa-2026');
+  
+  // Toast notifications & sharing state
+  const [toast, setToast] = useState(null);
+  const [isSharing, setIsSharing] = useState(false);
+
   const canvasRef = useRef(null);
+
+  const builderTitle = generateBuilderTitle(builderName, builderRole);
+
+  const showToast = (type, message, duration = 4000) => {
+    setToast({ type, message });
+    if (type !== 'loading') {
+      setTimeout(() => {
+        setToast(current => {
+          if (current && current.message === message) {
+            return null;
+          }
+          return current;
+        });
+      }, duration);
+    }
+  };
 
   const handleImageLoaded = (imageData) => {
     setUploadedImage(imageData);
     setZoom(1.0);
     setPan({ x: 0, y: 0 });
+    showToast('success', 'Image uploaded successfully!');
   };
 
   const handleSelectFormat = (format) => {
@@ -38,19 +65,110 @@ export default function App() {
   const handleResetCrop = () => {
     setZoom(1.0);
     setPan({ x: 0, y: 0 });
+    showToast('info', 'Position reset');
   };
 
   const handleDownload = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    showToast('loading', 'Generating high quality download...');
     try {
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `hhg-goa-${selectedFormat.id}-${Date.now()}.png`;
-      link.href = dataUrl;
-      link.click();
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          showToast('error', 'Export failed. Could not generate image blob.');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `hhg-goa-${selectedFormat.id}-${Date.now()}.png`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('success', 'Pass downloaded successfully!');
+      }, 'image/png');
     } catch (e) {
       console.error("Canvas download failed:", e);
+      showToast('error', 'Download failed. Please try again.');
+    }
+  };
+
+  const handleShare = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    setIsSharing(true);
+    showToast('loading', 'Preparing share link...');
+
+    try {
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          showToast('error', 'Failed to generate image.');
+          setIsSharing(false);
+          return;
+        }
+
+        const caption = 'Just claimed my official builder pass for HH Goa 2026! Customize yours and #FrameInGoa';
+        
+        // 1. Try Web Share API (for mobile direct file sharing)
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'pass.png', { type: 'image/png' })] })) {
+          try {
+            const file = new File([blob], 'hhg-pass.png', { type: 'image/png' });
+            await navigator.share({
+              files: [file],
+              title: 'HH Goa 2026 Hacker Pass',
+              text: caption,
+            });
+            showToast('success', 'Shared successfully!');
+            setIsSharing(false);
+            return;
+          } catch (shareError) {
+            console.log('Web Share failed, falling back to URL sharing:', shareError);
+          }
+        }
+
+        // 2. Fallback to Link-based Sharing (Express backend)
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+          const base64data = reader.result;
+          
+          try {
+            const response = await fetch('/api/temp-image', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ image: base64data }),
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to upload image');
+            }
+
+            const data = await response.json();
+            const shareUrl = data.url;
+
+            // Generate pre-filled X intent URL
+            const xIntentUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(caption)}&url=${encodeURIComponent(shareUrl)}`;
+            
+            window.open(xIntentUrl, '_blank', 'noopener,noreferrer');
+            showToast('success', 'Opening X (Twitter)...');
+          } catch (err) {
+            console.error('Server upload failed:', err);
+            showToast('error', 'Could not generate shareable link. Sharing caption only.');
+            const xIntentUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(caption)}`;
+            window.open(xIntentUrl, '_blank', 'noopener,noreferrer');
+          } finally {
+            setIsSharing(false);
+          }
+        };
+      }, 'image/png');
+    } catch (e) {
+      console.error('Error during share:', e);
+      showToast('error', 'Something went wrong while sharing.');
+      setIsSharing(false);
     }
   };
 
@@ -107,8 +225,8 @@ export default function App() {
           /* EDITOR & PREVIEW SCREEN */
           <div className="editor-screen animate-fade-in">
             <div className="editor-header">
-              <h2 className="editor-title">Customize Your Card</h2>
-              <p className="editor-subtitle">Adjust your crop and select the design format below.</p>
+              <h2 className="editor-title">Customize Your Identity</h2>
+              <p className="editor-subtitle">Adjust your photo's zoom and position, then input your details.</p>
             </div>
 
             <div className="editor-workspace">
@@ -119,12 +237,57 @@ export default function App() {
                   onSelectFormat={handleSelectFormat}
                 />
                 
+                {selectedFormat.id === 'builder-card' && (
+                  <div className="builder-details-form glass-panel animate-fade-in">
+                    <h4 className="controls-heading">Builder Details</h4>
+                    <div className="form-group">
+                      <label className="form-label">Full Name</label>
+                      <input 
+                        type="text" 
+                        value={builderName} 
+                        onChange={(e) => setBuilderName(e.target.value)} 
+                        placeholder="Enter your name" 
+                        maxLength={20}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Stack / Role</label>
+                      <input 
+                        type="text" 
+                        value={builderRole} 
+                        onChange={(e) => setBuilderRole(e.target.value)} 
+                        placeholder="e.g. Solidity / Frontend" 
+                        maxLength={24}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">GitHub Username</label>
+                      <input 
+                        type="text" 
+                        value={builderGithub} 
+                        onChange={(e) => setBuilderGithub(e.target.value)} 
+                        placeholder="e.g. dev-user" 
+                        maxLength={20}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="generated-title-preview">
+                      <span className="preview-label">Generated Title</span>
+                      <span className="preview-value">{builderTitle || 'Generating...'}</span>
+                    </div>
+                  </div>
+                )}
+                
                 <ImageControls 
                   zoom={zoom}
                   setZoom={setZoom}
                   onResetCrop={handleResetCrop}
                   onChangeImage={handleResetImage}
                   onDownload={handleDownload}
+                  onShare={handleShare}
+                  isSharing={isSharing}
                   format={selectedFormat}
                 />
               </div>
@@ -139,6 +302,10 @@ export default function App() {
                   pan={pan}
                   setPan={setPan}
                   canvasRef={canvasRef}
+                  builderName={builderName}
+                  builderRole={builderRole}
+                  builderGithub={builderGithub}
+                  builderTitle={builderTitle}
                 />
               </div>
             </div>
@@ -150,6 +317,14 @@ export default function App() {
       <footer className="app-footer">
         <p>© HH Goa 2026. All credentials secured locally in your browser.</p>
       </footer>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`toast toast-${toast.type} animate-fade-in`}>
+          {toast.type === 'loading' && <Loader className="toast-spinner" size={16} />}
+          <span>{toast.message}</span>
+        </div>
+      )}
 
       {/* Custom Styles for App layout */}
       <style>{`
@@ -338,6 +513,123 @@ export default function App() {
             display: flex;
             justify-content: center;
           }
+        }
+
+        /* Builder Form Styles */
+        .builder-details-form {
+          width: 100%;
+          padding: var(--spacing-md);
+          border-radius: var(--radius-md);
+          display: flex;
+          flex-direction: column;
+          gap: var(--spacing-md);
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid var(--color-border);
+        }
+
+        .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: var(--spacing-xs);
+          text-align: left;
+        }
+
+        .form-label {
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--color-text-secondary);
+        }
+
+        .form-input {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid var(--color-border);
+          border-radius: 8px;
+          padding: 10px 14px;
+          color: var(--color-text-primary);
+          font-family: var(--font-sans);
+          font-size: 0.95rem;
+          transition: all 0.2s ease;
+          outline: none;
+        }
+
+        .form-input:focus {
+          border-color: var(--color-accent-coral);
+          background: rgba(255, 255, 255, 0.06);
+          box-shadow: 0 0 10px rgba(255, 90, 95, 0.1);
+        }
+
+        .generated-title-preview {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          padding: 10px 14px;
+          background: rgba(255, 90, 95, 0.05);
+          border: 1px dashed rgba(255, 90, 95, 0.2);
+          border-radius: 8px;
+          text-align: left;
+        }
+
+        .preview-label {
+          font-family: var(--font-mono);
+          font-size: 0.7rem;
+          color: var(--color-accent-coral);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .preview-value {
+          font-size: 1rem;
+          font-weight: 700;
+          color: var(--color-text-primary);
+        }
+
+        /* Toast Notification Styles */
+        .toast {
+          position: fixed;
+          bottom: 24px;
+          right: 24px;
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: rgba(18, 20, 30, 0.9);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid var(--color-border);
+          padding: 12px 20px;
+          border-radius: 12px;
+          color: var(--color-text-primary);
+          font-size: 0.9rem;
+          font-weight: 500;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+          pointer-events: none;
+        }
+
+        .toast::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 4px;
+          border-radius: 4px 0 0 4px;
+        }
+
+        .toast-success::before { background: var(--color-accent-lime); }
+        .toast-error::before { background: var(--color-accent-coral); }
+        .toast-info::before { background: var(--color-accent-teal); }
+        .toast-loading::before { background: var(--color-accent-coral); }
+
+        .toast-spinner {
+          animation: spin 1s linear infinite;
+          color: var(--color-accent-coral);
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
 
         /* App Footer */

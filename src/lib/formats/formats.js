@@ -12,7 +12,7 @@ export const FORMATS = {
   BUILDER_CARD: {
     id: 'builder-card',
     name: 'Builder ID Card',
-    description: 'Official HH Goa 2026 hacker pass badge (Custom fields coming in Run 2)',
+    description: 'Official HH Goa 2026 hacker pass badge with custom fields',
     width: 800,
     height: 1200,
     aspectRatio: 2 / 3, // 2:3 vertical layout
