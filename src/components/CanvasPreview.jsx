@@ -2,7 +2,19 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Move } from 'lucide-react';
 import { renderPfp, renderBuilderCard } from '../lib/rendering/canvasRenderer';
 
-export default function CanvasPreview({ imageObj, format, zoom, setZoom, pan, setPan, canvasRef }) {
+export default function CanvasPreview({ 
+  imageObj, 
+  format, 
+  zoom, 
+  setZoom, 
+  pan, 
+  setPan, 
+  canvasRef,
+  builderName = 'GOA BUILDER',
+  builderRole = 'HACKER / R1',
+  builderGithub = 'hacker-goa-2026',
+  builderTitle = ''
+}) {
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -20,13 +32,14 @@ export default function CanvasPreview({ imageObj, format, zoom, setZoom, pan, se
       renderPfp(canvas, imageObj, zoom, pan.x, pan.y);
     } else if (format.id === 'builder-card') {
       renderBuilderCard(canvas, imageObj, zoom, pan.x, pan.y, {
-        name: 'GOA BUILDER',
-        role: 'HACKER / R1',
-        github: 'hacker-goa-2026',
-        status: 'VERIFIED PASS'
+        name: builderName || 'GOA BUILDER',
+        role: builderRole || 'HACKER / R1',
+        github: builderGithub || 'hacker-goa-2026',
+        status: 'VERIFIED PASS',
+        title: builderTitle
       });
     }
-  }, [imageObj, format, zoom, pan, canvasRef]);
+  }, [imageObj, format, zoom, pan, canvasRef, builderName, builderRole, builderGithub, builderTitle]);
 
   // Mouse drag handlers
   const handleMouseDown = (e) => {
