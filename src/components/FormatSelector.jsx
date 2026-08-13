@@ -1,6 +1,6 @@
 import React from 'react';
 import { FORMATS } from '../lib/formats/formats';
-import { Shield, Sparkles } from 'lucide-react';
+import { Shield, Sparkles, Check } from 'lucide-react';
 
 export default function FormatSelector({ selectedFormat, onSelectFormat }) {
   return (
@@ -14,6 +14,9 @@ export default function FormatSelector({ selectedFormat, onSelectFormat }) {
               key={format.id}
               className={`format-card glass-panel ${isSelected ? 'selected' : ''}`}
               onClick={() => onSelectFormat(format)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectFormat(format); }}
             >
               <div className="format-card-header">
                 <span className="format-card-name">{format.name}</span>
@@ -25,16 +28,18 @@ export default function FormatSelector({ selectedFormat, onSelectFormat }) {
               </div>
               <p className="format-card-desc">{format.description}</p>
               
-              {format.id === 'builder-card' && (
-                <div className="format-card-badge">
-                  Format B
-                </div>
-              )}
-              {format.id === 'pfp' && (
-                <div className="format-card-badge pfp-badge">
-                  Format A
-                </div>
-              )}
+              <div className="format-card-footer">
+                {format.id === 'builder-card' ? (
+                  <span className="format-card-badge">Format B · 2:3 Badge</span>
+                ) : (
+                  <span className="format-card-badge pfp-badge">Format A · 1:1 Overlay</span>
+                )}
+                {isSelected && (
+                  <span className="selected-indicator">
+                    <Check size={12} /> Active
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}
@@ -43,23 +48,24 @@ export default function FormatSelector({ selectedFormat, onSelectFormat }) {
       <style>{`
         .format-selector-container {
           width: 100%;
-          margin-bottom: var(--spacing-lg);
+          margin-bottom: var(--spacing-sm);
         }
 
         .selector-title {
           font-family: var(--font-mono);
-          font-size: 0.85rem;
+          font-size: 0.75rem;
           text-transform: uppercase;
           letter-spacing: 0.15em;
-          color: var(--color-text-secondary);
-          margin-bottom: var(--spacing-md);
+          color: var(--color-text-muted);
+          margin-bottom: var(--spacing-xs);
           text-align: left;
+          font-weight: 700;
         }
 
         .format-cards-grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: var(--spacing-md);
+          gap: var(--spacing-sm);
         }
 
         @media (min-width: 640px) {
@@ -76,8 +82,11 @@ export default function FormatSelector({ selectedFormat, onSelectFormat }) {
           text-align: left;
           background: rgba(255, 255, 255, 0.02);
           border: 1px solid var(--color-border);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
         }
 
         .format-card:hover {
@@ -105,11 +114,11 @@ export default function FormatSelector({ selectedFormat, onSelectFormat }) {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: var(--spacing-xs);
+          margin-bottom: 4px;
         }
 
         .format-card-name {
-          font-size: 1.05rem;
+          font-size: 1rem;
           font-weight: 700;
           color: var(--color-text-primary);
         }
@@ -131,21 +140,25 @@ export default function FormatSelector({ selectedFormat, onSelectFormat }) {
         }
 
         .format-card-desc {
-          font-size: 0.85rem;
+          font-size: 0.82rem;
           color: var(--color-text-secondary);
           line-height: 1.4;
-          margin-right: 60px; /* leave space for badge */
+          margin-bottom: var(--spacing-sm);
+        }
+
+        .format-card-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: auto;
         }
 
         .format-card-badge {
-          position: absolute;
-          right: var(--spacing-md);
-          bottom: var(--spacing-md);
           background: rgba(0, 242, 254, 0.1);
           color: var(--color-accent-teal);
           border: 1px solid rgba(0, 242, 254, 0.2);
           font-family: var(--font-mono);
-          font-size: 0.7rem;
+          font-size: 0.68rem;
           font-weight: 700;
           padding: 2px 6px;
           border-radius: 4px;
@@ -156,6 +169,17 @@ export default function FormatSelector({ selectedFormat, onSelectFormat }) {
           background: rgba(255, 90, 95, 0.1);
           color: var(--color-accent-coral);
           border: 1px solid rgba(255, 90, 95, 0.2);
+        }
+
+        .selected-indicator {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          font-family: var(--font-mono);
+          font-size: 0.68rem;
+          font-weight: 700;
+          color: var(--color-accent-coral);
+          text-transform: uppercase;
         }
       `}</style>
     </div>

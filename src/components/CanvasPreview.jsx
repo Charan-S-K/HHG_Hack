@@ -10,9 +10,9 @@ export default function CanvasPreview({
   pan, 
   setPan, 
   canvasRef,
-  builderName = 'GOA BUILDER',
-  builderRole = 'HACKER / R1',
-  builderGithub = 'hacker-goa-2026',
+  name,
+  role,
+  github,
   builderTitle = ''
 }) {
   const containerRef = useRef(null);
@@ -32,14 +32,14 @@ export default function CanvasPreview({
       renderPfp(canvas, imageObj, zoom, pan.x, pan.y);
     } else if (format.id === 'builder-card') {
       renderBuilderCard(canvas, imageObj, zoom, pan.x, pan.y, {
-        name: builderName || 'GOA BUILDER',
-        role: builderRole || 'HACKER / R1',
-        github: builderGithub || 'hacker-goa-2026',
+        name: name || 'BUILDER',
+        role: role || 'HACKER / BUILDER',
+        github: github || '',
         status: 'VERIFIED PASS',
         title: builderTitle
       });
     }
-  }, [imageObj, format, zoom, pan, canvasRef, builderName, builderRole, builderGithub, builderTitle]);
+  }, [imageObj, format, zoom, pan, canvasRef, name, role, github, builderTitle]);
 
   // Mouse drag handlers
   const handleMouseDown = (e) => {
@@ -129,7 +129,7 @@ export default function CanvasPreview({
     touchStartDist.current = 0;
   };
 
-  // Prevent scroll when dragging on touch devices
+  // Prevent page scroll when dragging canvas on touch devices
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -188,7 +188,7 @@ export default function CanvasPreview({
           width: 100%;
           cursor: grab;
           user-select: none;
-          background: rgba(18, 20, 30, 0.5);
+          background: rgba(15, 17, 26, 0.6);
           overflow: hidden;
           max-width: 440px;
         }
