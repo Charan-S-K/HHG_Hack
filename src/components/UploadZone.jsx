@@ -52,12 +52,50 @@ export default function UploadZone({ onImageLoaded }) {
       reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
-          setIsLoading(false);
-          onImageLoaded({
-            file: targetFile,
-            imageObj: img,
-            src: event.target.result,
-          });
+          const maxDimension = 3000;
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > maxDimension || height > maxDimension) {
+            // Calculate new dimensions preserving aspect ratio
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+            
+            // Perform downscale using a temporary canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Create a new image object with downscaled data
+            const downscaledImg = new Image();
+            downscaledImg.onload = () => {
+              setIsLoading(false);
+              onImageLoaded({
+                file: targetFile, // keeping original file reference
+                imageObj: downscaledImg,
+                src: canvas.toDataURL('image/jpeg', 0.9)
+              });
+            };
+            downscaledImg.onerror = () => {
+              setIsLoading(false);
+              setErrorMessage('Failed to scale down image.');
+            };
+            downscaledImg.src = canvas.toDataURL('image/jpeg', 0.9);
+          } else {
+            setIsLoading(false);
+            onImageLoaded({
+              file: targetFile,
+              imageObj: img,
+              src: event.target.result
+            });
+          }
         };
         img.onerror = () => {
           setIsLoading(false);

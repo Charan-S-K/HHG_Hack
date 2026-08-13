@@ -1,9 +1,10 @@
 /**
  * HH Goa 2026 — Builder Title Generator
- * Produces varied, non-repetitive, event-specific builder titles.
+ * Produces both professional and fun, event-specific builder titles.
  * No API key, no network requests — fully deterministic and offline.
  */
 
+// Professional technical role parts (from Gourav)
 const PREFIXES = [
   'Full-Stack', 'Frontend', 'Backend', 'Mobile', 'AI/ML', 'DevOps',
   'Blockchain', 'Systems', 'Cloud', 'Platform', 'Product', 'Growth',
@@ -27,6 +28,26 @@ const SUFFIXES = [
   '@ Sprint Week', '· Code & Chai', '— Go-Live Mode', '/ Demo Day',
 ];
 
+// Fun Goa-themed title parts (from origin/main)
+const prefixes = [
+  'Async', 'Unstoppable', 'DeFi', 'Kernel', 'Zero-Knowledge',
+  'Decentralized', 'Cyber', 'Mainnet', 'Bytecode', 'Chaotic',
+  'Reactive', 'Immutable', 'Polymorphic', 'Serverless', 'Stateful',
+  'Distributed', 'Algorithmic', 'Sudo', 'Cryptographic', 'Quantum'
+];
+
+const middles = [
+  'Fenny', 'Coconut', 'Baga', 'Anjuna', 'Vagator', 'Calangute',
+  'Monsoon', 'Shack', 'Curry', 'Masala', 'Palm', 'Sunset',
+  'Breeze', 'Tavern', 'Cashew', 'Mandovi', 'Zuari', 'Dunes'
+];
+
+const suffixes = [
+  'Warlock', 'Architect', 'Wizard', 'Ninja', 'Crusader',
+  'Evangelist', 'Hacker', 'Breaker', 'Gladiator', 'Overlord',
+  'Nomad', 'Slayer', 'Commander', 'Artisan', 'Wrangler'
+];
+
 /**
  * Simple deterministic hash from a string
  * @param {string} str
@@ -42,12 +63,12 @@ function hashString(str) {
 }
 
 /**
- * Generates a varied builder title seeded by the user's name.
+ * Generates a professional technical role seeded by the user's name (from Gourav).
  * Same name → same title (stable). Different names → different titles.
  * @param {string} name - The user's name input
- * @returns {string} A formatted builder title
+ * @returns {string} A formatted professional title
  */
-export function generateBuilderTitle(name) {
+export function generateProfessionalRole(name) {
   const seed = name && name.trim().length > 0
     ? hashString(name.trim().toLowerCase())
     : hashString(String(Date.now()));
@@ -57,6 +78,30 @@ export function generateBuilderTitle(name) {
   const suffix = SUFFIXES[Math.floor(seed / (PREFIXES.length * ARCHETYPES.length)) % SUFFIXES.length];
 
   return `${prefix} ${archetype} ${suffix}`;
+}
+
+/**
+ * Generates a deterministic, fun builder title based on the user's name and stack/role (from origin/main).
+ * @param {string} name 
+ * @param {string} role 
+ * @returns {string}
+ */
+export function generateBuilderTitle(name = '', role = '') {
+  const nameVal = name ? name.trim() : 'Anonymous';
+  const roleVal = role ? role.trim() : 'Hacker';
+  const seedStr = `${nameVal.toLowerCase()}-${roleVal.toLowerCase()}`;
+  
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = seedStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  hash = Math.abs(hash);
+
+  const prefix = prefixes[hash % prefixes.length];
+  const middle = middles[(hash + 3) % middles.length];
+  const suffix = suffixes[(hash + 7) % suffixes.length];
+
+  return `${prefix} ${middle} ${suffix}`;
 }
 
 /**

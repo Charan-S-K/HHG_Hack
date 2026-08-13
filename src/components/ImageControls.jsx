@@ -18,6 +18,7 @@ export default function ImageControls({
   onChangeImage,
   onDownload,
   onShare,
+  isSharing = false,
   format,
   name,
   setName,
@@ -154,14 +155,14 @@ export default function ImageControls({
           <Download size={17} />
           Download Image
         </button>
-
         <button
           id="btn-share-x"
           className="btn-share export-btn"
           onClick={onShare}
+          disabled={isSharing}
         >
           <XLogo size={15} />
-          Share on X with <strong>#FrameInGoa</strong>
+          {isSharing ? 'Sharing...' : <span>Share on X with <strong>#FrameInGoa</strong></span>}
         </button>
       </div>
 

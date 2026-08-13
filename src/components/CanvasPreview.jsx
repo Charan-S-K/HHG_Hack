@@ -12,7 +12,8 @@ export default function CanvasPreview({
   canvasRef,
   name,
   role,
-  github
+  github,
+  builderTitle = ''
 }) {
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -34,10 +35,11 @@ export default function CanvasPreview({
         name: name || 'BUILDER',
         role: role || 'HACKER / BUILDER',
         github: github || '',
-        status: 'VERIFIED PASS'
+        status: 'VERIFIED PASS',
+        title: builderTitle
       });
     }
-  }, [imageObj, format, zoom, pan, canvasRef, name, role, github]);
+  }, [imageObj, format, zoom, pan, canvasRef, name, role, github, builderTitle]);
 
   // Mouse drag handlers
   const handleMouseDown = (e) => {

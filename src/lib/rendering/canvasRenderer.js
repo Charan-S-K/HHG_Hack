@@ -213,10 +213,10 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   
   // Dark background strip for text legibility
   ctx.fillStyle = 'rgba(10, 11, 16, 0.85)';
-  ctx.fillRect(centerX - 180, centerY - radius - 26, 360, 52);
+  ctx.fillRect(centerX - 180, centerY - radius - 28, 360, 56);
   ctx.strokeStyle = '#FF5A5F';
   ctx.lineWidth = 2;
-  ctx.strokeRect(centerX - 180, centerY - radius - 26, 360, 52);
+  ctx.strokeRect(centerX - 180, centerY - radius - 28, 360, 56);
   
   ctx.fillStyle = '#FFFFFF';
   ctx.fillText('HH GOA 2026', centerX, centerY - radius);
@@ -230,10 +230,10 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
 
   // Bottom badge background
   ctx.fillStyle = 'rgba(10, 11, 16, 0.85)';
-  ctx.fillRect(centerX - 140, centerY + radius - 24, 280, 48);
+  ctx.fillRect(centerX - 140, centerY + radius - 26, 280, 52);
   ctx.strokeStyle = '#00F2FE';
   ctx.lineWidth = 2;
-  ctx.strokeRect(centerX - 140, centerY + radius - 24, 280, 48);
+  ctx.strokeRect(centerX - 140, centerY + radius - 26, 280, 52);
 
   ctx.fillStyle = '#A7FF37'; // Lime accent
   ctx.fillText('B U I L D E R', centerX, centerY + radius);
@@ -252,7 +252,8 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
     name = 'BUILDER #404',
     role = 'HACKER',
     github = '',
-    status = 'VERIFIED PASS'
+    status = 'VERIFIED PASS',
+    title = ''
   } = options;
 
   const displayName = (name || 'BUILDER #404').toUpperCase();
@@ -423,6 +424,17 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   const textLen = ctx.measureText(status).width;
   ctx.arc(canvas.width - 65 - textLen - 16, detailsY + 75, 7, 0, Math.PI * 2);
   ctx.fill();
+
+  // Builder Title (Right side)
+  if (title) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.font = 'bold 16px "Space Mono", monospace';
+    ctx.fillText('BUILDER TITLE //', canvas.width - 75, detailsY + 150);
+
+    ctx.fillStyle = '#FF5A5F'; // Coral accent
+    ctx.font = 'bold 20px "Space Mono", monospace';
+    ctx.fillText(title, canvas.width - 75, detailsY + 185);
+  }
 
   ctx.restore();
 

@@ -4,8 +4,8 @@ import UploadZone from './components/UploadZone';
 import FormatSelector from './components/FormatSelector';
 import CanvasPreview from './components/CanvasPreview';
 import ImageControls from './components/ImageControls';
-import { ShieldCheck, Flame, Compass, CheckCircle2, AlertCircle, Info, Sparkles } from 'lucide-react';
-import { generateBuilderTitle } from './lib/utils/titleGenerator';
+import { ShieldCheck, Flame, Compass, CheckCircle2, AlertCircle, Info, Sparkles, Loader } from 'lucide-react';
+import { generateBuilderTitle, generateProfessionalRole } from './lib/utils/titleGenerator';
 
 export default function App() {
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -21,18 +21,23 @@ export default function App() {
   const [pan, setPan] = useState({ x: 0, y: 0 });
 
   // Toast Notification System
-  const [toast, setToast] = useState(null); // { id, message, type: 'success'|'error'|'info' }
+  const [toast, setToast] = useState(null); // { id, message, type: 'success'|'error'|'info'|'loading' }
+  const [isSharing, setIsSharing] = useState(false);
   const toastTimeoutRef = useRef(null);
 
   const canvasRef = useRef(null);
+
+  const builderTitle = generateBuilderTitle(name, role);
 
   const showNotification = (message, type = 'success') => {
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     const id = Date.now();
     setToast({ id, message, type });
-    toastTimeoutRef.current = setTimeout(() => {
-      setToast(null);
-    }, 4000);
+    if (type !== 'loading') {
+      toastTimeoutRef.current = setTimeout(() => {
+        setToast(null);
+      }, 4000);
+    }
   };
 
   const handleImageLoaded = (imageData) => {
@@ -45,7 +50,7 @@ export default function App() {
       setName('HH GOA BUILDER');
     }
     if (!role) {
-      setRole(generateBuilderTitle('HH GOA BUILDER'));
+      setRole(generateProfessionalRole('HH GOA BUILDER'));
     }
 
     showNotification('Image loaded successfully! Adjust crop and fields below.', 'success');
@@ -71,7 +76,7 @@ export default function App() {
   };
 
   const handleRegenerateTitle = () => {
-    const newTitle = generateBuilderTitle(name || String(Date.now()));
+    const newTitle = generateProfessionalRole(name || String(Date.now()));
     setRole(newTitle);
     showNotification(`Generated title: "${newTitle}"`, 'info');
   };
@@ -82,38 +87,111 @@ export default function App() {
       showNotification('Canvas preview is not available.', 'error');
       return;
     }
-
+    showNotification('Generating high quality download...', 'loading');
     try {
       const formatSuffix = selectedFormat.id === 'pfp' ? 'pfp-frame' : 'builder-card';
       const fileName = `HH-Goa-2026-${formatSuffix}-${Date.now()}.png`;
 
-      // Export high quality PNG
-      const dataUrl = canvas.toDataURL('image/png', 1.0);
-      const link = document.createElement('a');
-      link.download = fileName;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      showNotification(`Identity graphic downloaded as ${fileName}!`, 'success');
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          showNotification('Export failed. Could not generate image blob.', 'error');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showNotification(`Identity graphic downloaded successfully as ${fileName}!`, 'success');
+      }, 'image/png');
     } catch (e) {
       console.error("Canvas download failed:", e);
       showNotification('Download failed. Please try again.', 'error');
     }
   };
 
-  const handleShare = () => {
-    const builderName = name.trim() || 'HH Goa Builder';
-    const captionText = `Just claimed my official #FrameInGoa Builder Pass for HH Goa 2026! 🚀\n\nBuilding with @hackerhousegoa — see you in Goa! 🌴✨\n\n#HHGoa2026 #Hackathon #FrameInGoa`;
-    const shareUrl = window.location.origin;
-
-    const twitterIntent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(captionText)}&url=${encodeURIComponent(shareUrl)}`;
+  const handleShare = async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      showNotification('Canvas preview is not available.', 'error');
+      return;
+    }
     
-    // Open X Share popup
-    window.open(twitterIntent, '_blank', 'noopener,noreferrer,width=600,height=500');
+    setIsSharing(true);
+    showNotification('Preparing share link...', 'loading');
 
-    showNotification('Share dialog opened! Don\'t forget to attach your downloaded graphic to your tweet.', 'info');
+    try {
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          showNotification('Failed to generate image.', 'error');
+          setIsSharing(false);
+          return;
+        }
+
+        const captionText = `Just claimed my official #FrameInGoa Builder Pass for HH Goa 2026! 🚀\n\nBuilding with @hackerhousegoa — see you in Goa! 🌴✨\n\n#HHGoa2026 #Hackathon #FrameInGoa`;
+        
+        // 1. Try Web Share API (for mobile direct file sharing)
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'pass.png', { type: 'image/png' })] })) {
+          try {
+            const file = new File([blob], 'hhg-pass.png', { type: 'image/png' });
+            await navigator.share({
+              files: [file],
+              title: 'HH Goa 2026 Hacker Pass',
+              text: captionText,
+            });
+            showNotification('Shared successfully!', 'success');
+            setIsSharing(false);
+            return;
+          } catch (shareError) {
+            console.log('Web Share failed, falling back to URL sharing:', shareError);
+          }
+        }
+
+        // 2. Fallback to Link-based Sharing (Express backend)
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+          const base64data = reader.result;
+          
+          try {
+            const response = await fetch('/api/temp-image', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ image: base64data }),
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to upload image');
+            }
+
+            const data = await response.json();
+            const shareUrl = data.url;
+
+            // Generate pre-filled X intent URL
+            const xIntentUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(captionText)}&url=${encodeURIComponent(shareUrl)}`;
+            
+            window.open(xIntentUrl, '_blank', 'noopener,noreferrer');
+            showNotification('Opening X (Twitter)...', 'success');
+          } catch (err) {
+            console.error('Server upload failed:', err);
+            showNotification('Could not generate shareable link. Sharing caption only.', 'error');
+            const xIntentUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(captionText)}`;
+            window.open(xIntentUrl, '_blank', 'noopener,noreferrer');
+          } finally {
+            setIsSharing(false);
+          }
+        };
+      }, 'image/png');
+    } catch (e) {
+      console.error('Error during share:', e);
+      showNotification('Something went wrong while sharing.', 'error');
+      setIsSharing(false);
+    }
   };
 
   return (
@@ -192,6 +270,7 @@ export default function App() {
                   onChangeImage={handleResetImage}
                   onDownload={handleDownload}
                   onShare={handleShare}
+                  isSharing={isSharing}
                   format={selectedFormat}
                   name={name}
                   setName={setName}
@@ -216,6 +295,7 @@ export default function App() {
                   name={name}
                   role={role}
                   github={github}
+                  builderTitle={builderTitle}
                 />
               </div>
             </div>
@@ -231,10 +311,11 @@ export default function App() {
       {/* Toast Notification Banner */}
       {toast && (
         <div className="toast-container" role="status" aria-live="polite">
-          <div className={`toast toast-${toast.type}`}>
+          <div className={`toast toast-${toast.type} animate-fade-in`}>
             {toast.type === 'success' && <CheckCircle2 size={18} />}
             {toast.type === 'error' && <AlertCircle size={18} />}
             {toast.type === 'info' && <Info size={18} />}
+            {toast.type === 'loading' && <Loader className="toast-spinner" size={18} />}
             <span>{toast.message}</span>
           </div>
         </div>
@@ -439,6 +520,123 @@ export default function App() {
             position: sticky;
             top: 20px;
           }
+        }
+
+        /* Builder Form Styles */
+        .builder-details-form {
+          width: 100%;
+          padding: var(--spacing-md);
+          border-radius: var(--radius-md);
+          display: flex;
+          flex-direction: column;
+          gap: var(--spacing-md);
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid var(--color-border);
+        }
+
+        .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: var(--spacing-xs);
+          text-align: left;
+        }
+
+        .form-label {
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--color-text-secondary);
+        }
+
+        .form-input {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid var(--color-border);
+          border-radius: 8px;
+          padding: 10px 14px;
+          color: var(--color-text-primary);
+          font-family: var(--font-sans);
+          font-size: 0.95rem;
+          transition: all 0.2s ease;
+          outline: none;
+        }
+
+        .form-input:focus {
+          border-color: var(--color-accent-coral);
+          background: rgba(255, 255, 255, 0.06);
+          box-shadow: 0 0 10px rgba(255, 90, 95, 0.1);
+        }
+
+        .generated-title-preview {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          padding: 10px 14px;
+          background: rgba(255, 90, 95, 0.05);
+          border: 1px dashed rgba(255, 90, 95, 0.2);
+          border-radius: 8px;
+          text-align: left;
+        }
+
+        .preview-label {
+          font-family: var(--font-mono);
+          font-size: 0.7rem;
+          color: var(--color-accent-coral);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .preview-value {
+          font-size: 1rem;
+          font-weight: 700;
+          color: var(--color-text-primary);
+        }
+
+        /* Toast Notification Styles */
+        .toast {
+          position: fixed;
+          bottom: 24px;
+          right: 24px;
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: rgba(18, 20, 30, 0.9);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid var(--color-border);
+          padding: 12px 20px;
+          border-radius: 12px;
+          color: var(--color-text-primary);
+          font-size: 0.9rem;
+          font-weight: 500;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+          pointer-events: none;
+        }
+
+        .toast::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: 4px;
+          border-radius: 4px 0 0 4px;
+        }
+
+        .toast-success::before { background: var(--color-accent-lime); }
+        .toast-error::before { background: var(--color-accent-coral); }
+        .toast-info::before { background: var(--color-accent-teal); }
+        .toast-loading::before { background: var(--color-accent-coral); }
+
+        .toast-spinner {
+          animation: spin 1s linear infinite;
+          color: var(--color-accent-coral);
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
 
         /* App Footer */
