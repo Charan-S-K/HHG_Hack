@@ -201,7 +201,7 @@ export default function ImageControls({
           letter-spacing: 0.18em;
           color: var(--color-text-muted);
           font-weight: 700;
-          margin-bottom: 2px;
+          margin-bottom: var(--spacing-sm);
         }
 
         .role-input-row {
