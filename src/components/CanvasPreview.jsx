@@ -2,7 +2,18 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Move } from 'lucide-react';
 import { renderPfp, renderBuilderCard } from '../lib/rendering/canvasRenderer';
 
-export default function CanvasPreview({ imageObj, format, zoom, setZoom, pan, setPan, canvasRef }) {
+export default function CanvasPreview({ 
+  imageObj, 
+  format, 
+  zoom, 
+  setZoom, 
+  pan, 
+  setPan, 
+  canvasRef,
+  name,
+  role,
+  github
+}) {
   const containerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -20,13 +31,13 @@ export default function CanvasPreview({ imageObj, format, zoom, setZoom, pan, se
       renderPfp(canvas, imageObj, zoom, pan.x, pan.y);
     } else if (format.id === 'builder-card') {
       renderBuilderCard(canvas, imageObj, zoom, pan.x, pan.y, {
-        name: 'GOA BUILDER',
-        role: 'HACKER / R1',
-        github: 'hacker-goa-2026',
+        name: name || 'BUILDER',
+        role: role || 'HACKER / BUILDER',
+        github: github || '',
         status: 'VERIFIED PASS'
       });
     }
-  }, [imageObj, format, zoom, pan, canvasRef]);
+  }, [imageObj, format, zoom, pan, canvasRef, name, role, github]);
 
   // Mouse drag handlers
   const handleMouseDown = (e) => {
@@ -116,7 +127,7 @@ export default function CanvasPreview({ imageObj, format, zoom, setZoom, pan, se
     touchStartDist.current = 0;
   };
 
-  // Prevent scroll when dragging on touch devices
+  // Prevent page scroll when dragging canvas on touch devices
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -175,7 +186,7 @@ export default function CanvasPreview({ imageObj, format, zoom, setZoom, pan, se
           width: 100%;
           cursor: grab;
           user-select: none;
-          background: rgba(18, 20, 30, 0.5);
+          background: rgba(15, 17, 26, 0.6);
           overflow: hidden;
           max-width: 440px;
         }

@@ -1,8 +1,19 @@
 /**
- * HTML5 Canvas Rendering Pipeline
+ * HTML5 Canvas Rendering Pipeline for HH Goa 2026 Identity Studio
  */
 
 import { FORMATS } from '../formats/formats';
+
+/**
+ * Simple pseudo-random generator seeded by string/number for deterministic barcode rendering
+ */
+function seededRandom(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
 
 /**
  * Draws the user photo with zoom and pan transformations into a specified bounding box.
@@ -44,7 +55,6 @@ export function drawUserPhoto(ctx, img, x, y, width, height, zoom, panX, panY, c
   const finalHeight = drawHeight * zoom;
 
   // Center the image in the bounding box + apply pan offsets
-  // Note: panX and panY should be scaled according to zoom if we want fine control
   const drawX = x + (width - finalWidth) / 2 + panX;
   const drawY = y + (height - finalHeight) / 2 + panY;
 
@@ -55,7 +65,7 @@ export function drawUserPhoto(ctx, img, x, y, width, height, zoom, panX, panY, c
 /**
  * Draws a futuristic retro-grid background pattern.
  */
-function drawTechGrid(ctx, x, y, width, height, cellSize = 40) {
+function drawTechGrid(ctx, x, y, width, height, cellSize = 50) {
   ctx.save();
   ctx.strokeStyle = 'rgba(0, 242, 254, 0.04)';
   ctx.lineWidth = 1;
@@ -88,18 +98,26 @@ function drawTechGrid(ctx, x, y, width, height, cellSize = 40) {
 }
 
 /**
- * Draws a procedural barcode for the Builder ID Card.
+ * Draws a deterministic procedural barcode for the Builder ID Card.
  */
-function drawBarcode(ctx, x, y, width, height) {
+function drawBarcode(ctx, x, y, width, height, seedStr = 'HHG2026') {
   ctx.save();
   ctx.fillStyle = '#FFFFFF';
   
   let currentX = x;
   const endX = x + width;
   
+  let seedNum = 12345;
+  for (let i = 0; i < seedStr.length; i++) {
+    seedNum += seedStr.charCodeAt(i) * (i + 1);
+  }
+  const rand = seededRandom(seedNum);
+
   while (currentX < endX) {
-    const barWidth = Math.random() > 0.4 ? (Math.random() > 0.5 ? 4 : 2) : 1;
-    const spaceWidth = Math.random() > 0.4 ? (Math.random() > 0.5 ? 3 : 1) : 2;
+    const r1 = rand();
+    const r2 = rand();
+    const barWidth = r1 > 0.4 ? (r2 > 0.5 ? 4 : 2) : 1;
+    const spaceWidth = r1 > 0.4 ? (r2 > 0.5 ? 3 : 1) : 2;
     
     if (currentX + barWidth <= endX) {
       ctx.fillRect(currentX, y, barWidth, height);
@@ -113,16 +131,15 @@ function drawBarcode(ctx, x, y, width, height) {
  * Renders the PFP Frame format onto the canvas.
  */
 export function renderPfp(canvas, img, zoom, panX, panY) {
-  const format = FORMATS.PFP;
-  canvas.width = format.width;
-  canvas.height = format.height;
+  canvas.width = FORMATS.PFP.width;
+  canvas.height = FORMATS.PFP.height;
   const ctx = canvas.getContext('2d');
 
-  // 1. Draw base dark background
+  // 1. Base dark background
   ctx.fillStyle = '#0A0B10';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 2. Draw user photo in the center
+  // 2. User photo in the center
   const padding = 60;
   const photoSize = canvas.width - padding * 2;
   if (img) {
@@ -140,7 +157,7 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
     );
   }
 
-  // 3. Draw Cyberpunk/Neon outer overlay frame
+  // 3. Cyberpunk/Neon outer overlay frame
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;
   const radius = photoSize / 2;
@@ -169,7 +186,7 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   ctx.stroke();
   ctx.restore();
 
-  // Draw technical crosshairs
+  // Technical crosshairs
   ctx.strokeStyle = 'rgba(0, 242, 254, 0.6)';
   ctx.lineWidth = 2;
   
@@ -194,7 +211,7 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
-  // Paint subtle dark background strip for text legibility
+  // Dark background strip for text legibility
   ctx.fillStyle = 'rgba(10, 11, 16, 0.85)';
   ctx.fillRect(centerX - 180, centerY - radius - 26, 360, 52);
   ctx.strokeStyle = '#FF5A5F';
@@ -211,7 +228,7 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Paint bottom badge background
+  // Bottom badge background
   ctx.fillStyle = 'rgba(10, 11, 16, 0.85)';
   ctx.fillRect(centerX - 140, centerY + radius - 24, 280, 48);
   ctx.strokeStyle = '#00F2FE';
@@ -227,17 +244,20 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
  * Renders the Builder ID Card format onto the canvas.
  */
 export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
-  const format = FORMATS.BUILDER_CARD;
-  canvas.width = format.width;
-  canvas.height = format.height;
+  canvas.width = FORMATS.BUILDER_CARD.width;
+  canvas.height = FORMATS.BUILDER_CARD.height;
   const ctx = canvas.getContext('2d');
 
   const {
     name = 'BUILDER #404',
     role = 'HACKER',
-    github = 'github-user',
-    status = 'VERIFIED'
+    github = '',
+    status = 'VERIFIED PASS'
   } = options;
+
+  const displayName = (name || 'BUILDER #404').toUpperCase();
+  const displayRole = (role || 'HACKER / BUILDER').toUpperCase();
+  const displayGithub = github ? `@${github.replace(/^@/, '')}` : '@hhgoa2026';
 
   // 1. Draw base dark background
   ctx.fillStyle = '#0A0B10';
@@ -246,7 +266,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   // 2. Draw tech grid
   drawTechGrid(ctx, 0, 0, canvas.width, canvas.height, 50);
 
-  // 3. Draw card boarder / neon accents
+  // 3. Draw card border / neon accents
   ctx.save();
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
   ctx.lineWidth = 20;
@@ -271,11 +291,11 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
 
   // 5. Draw Photo Slot container
   const photoX = 175;
-  const photoY = 190;
+  const photoY = 180;
   const photoWidth = 450;
-  const photoHeight = 500;
+  const photoHeight = 490;
 
-  // Draw background shadow placeholder for photo
+  // Background placeholder for photo
   ctx.fillStyle = '#12141E';
   ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
 
@@ -293,7 +313,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
       'rect'
     );
   } else {
-    // If no image, draw a futuristic avatar placeholder
+    // Futuristic avatar placeholder
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -327,9 +347,9 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.restore();
 
   // 6. Draw Details Panel (Lower half)
-  const detailsY = 750;
+  const detailsY = 730;
   
-  // Custom design lines
+  // Custom separator line
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -343,63 +363,82 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
 
   // Label Name
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.font = 'bold 16px "Space Mono", monospace';
-  ctx.fillText('IDENTITY NAME //', 75, detailsY + 50);
+  ctx.font = 'bold 15px "Space Mono", monospace';
+  ctx.fillText('IDENTITY NAME //', 65, detailsY + 45);
+
+  // Name value (auto-scale font size if long)
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '800 38px "Outfit", sans-serif';
-  ctx.fillText(name, 75, detailsY + 95);
+  let nameFontSize = 36;
+  ctx.font = `800 ${nameFontSize}px "Outfit", sans-serif`;
+  while (ctx.measureText(displayName).width > 420 && nameFontSize > 20) {
+    nameFontSize -= 2;
+    ctx.font = `800 ${nameFontSize}px "Outfit", sans-serif`;
+  }
+  ctx.fillText(displayName, 65, detailsY + 88);
 
   // Label Role
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.font = 'bold 16px "Space Mono", monospace';
-  ctx.fillText('ASSIGNED ROLE //', 75, detailsY + 160);
+  ctx.font = 'bold 15px "Space Mono", monospace';
+  ctx.fillText('STACK / ROLE //', 65, detailsY + 145);
+
+  // Role value (auto-scale font size if long)
   ctx.fillStyle = '#A7FF37'; // Lime accent
-  ctx.font = 'bold 28px "Space Mono", monospace';
-  ctx.fillText(role, 75, detailsY + 200);
+  let roleFontSize = 24;
+  ctx.font = `bold ${roleFontSize}px "Space Mono", monospace`;
+  while (ctx.measureText(displayRole).width > 420 && roleFontSize > 14) {
+    roleFontSize -= 1;
+    ctx.font = `bold ${roleFontSize}px "Space Mono", monospace`;
+  }
+  ctx.fillText(displayRole, 65, detailsY + 182);
 
-  // GitHub user details
+  // GitHub handle
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.font = 'bold 16px "Space Mono", monospace';
-  ctx.fillText('GITHUB //', 75, detailsY + 260);
+  ctx.font = 'bold 15px "Space Mono", monospace';
+  ctx.fillText('GITHUB //', 65, detailsY + 235);
   ctx.fillStyle = '#00F2FE'; // Teal accent
-  ctx.font = 'bold 22px "Space Mono", monospace';
-  ctx.fillText(`@${github}`, 75, detailsY + 295);
+  let ghFontSize = 20;
+  ctx.font = `bold ${ghFontSize}px "Space Mono", monospace`;
+  while (ctx.measureText(displayGithub).width > 420 && ghFontSize > 12) {
+    ghFontSize -= 1;
+    ctx.font = `bold ${ghFontSize}px "Space Mono", monospace`;
+  }
+  ctx.fillText(displayGithub, 65, detailsY + 268);
 
-  // Meta details right side: Status and barcode
+  // Meta details right side: Status & Barcode
   ctx.textAlign = 'right';
 
   // Status block
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.font = 'bold 16px "Space Mono", monospace';
-  ctx.fillText('STATUS //', canvas.width - 75, detailsY + 50);
+  ctx.font = 'bold 15px "Space Mono", monospace';
+  ctx.fillText('STATUS //', canvas.width - 65, detailsY + 45);
 
   // Verified Badge (Lime)
   ctx.fillStyle = '#A7FF37';
-  ctx.font = '800 24px "Outfit", sans-serif';
-  ctx.fillText(status, canvas.width - 75, detailsY + 90);
+  ctx.font = '800 22px "Outfit", sans-serif';
+  ctx.fillText(status, canvas.width - 65, detailsY + 82);
   
-  // Small flashing status circle indicator next to text
+  // Status indicator circle
   ctx.fillStyle = '#A7FF37';
   ctx.beginPath();
   const textLen = ctx.measureText(status).width;
-  ctx.arc(canvas.width - 75 - textLen - 20, detailsY + 82, 8, 0, Math.PI * 2);
+  ctx.arc(canvas.width - 65 - textLen - 16, detailsY + 75, 7, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.restore();
 
-  // 7. Draw Barcode at the bottom center
-  const barcodeWidth = 350;
-  const barcodeHeight = 65;
-  const barcodeX = canvas.width - 75 - barcodeWidth;
-  const barcodeY = detailsY + 235;
+  // 7. Draw Barcode at bottom right
+  const barcodeWidth = 320;
+  const barcodeHeight = 60;
+  const barcodeX = canvas.width - 65 - barcodeWidth;
+  const barcodeY = detailsY + 220;
 
-  drawBarcode(ctx, barcodeX, barcodeY, barcodeWidth, barcodeHeight);
+  drawBarcode(ctx, barcodeX, barcodeY, barcodeWidth, barcodeHeight, displayName);
   
   // Barcode alphanumeric string
   ctx.save();
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
   ctx.font = '12px "Space Mono", monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('HHG2026-XDF90184-SECURE', barcodeX + barcodeWidth / 2, barcodeY + barcodeHeight + 20);
+  ctx.fillText(`HHG2026-${displayName.replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'PASS'}-SECURE`, barcodeX + barcodeWidth / 2, barcodeY + barcodeHeight + 18);
   ctx.restore();
 }

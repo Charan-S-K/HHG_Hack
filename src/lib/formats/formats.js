@@ -2,7 +2,7 @@ export const FORMATS = {
   PFP: {
     id: 'pfp',
     name: 'PFP Frame',
-    description: 'HH Goa 2026 custom frame for your social profiles',
+    description: 'HH Goa 2026 circular frame overlay for Twitter, LinkedIn & Discord profile photos',
     width: 1024,
     height: 1024,
     aspectRatio: 1, // 1:1
@@ -12,7 +12,7 @@ export const FORMATS = {
   BUILDER_CARD: {
     id: 'builder-card',
     name: 'Builder ID Card',
-    description: 'Official HH Goa 2026 hacker pass badge (Custom fields coming in Run 2)',
+    description: 'Official HH Goa 2026 hacker pass — includes your name, role, and verified badge',
     width: 800,
     height: 1200,
     aspectRatio: 2 / 3, // 2:3 vertical layout
