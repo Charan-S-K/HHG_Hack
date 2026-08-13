@@ -60,12 +60,7 @@ html {
 }
 
 body {
-  background-color: var(--color-bg-dark);
-  /* Premium violet & indigo ambient glows */
-  background-image:
-    radial-gradient(ellipse 70% 50% at 30% 30%, rgba(139, 92, 246, 0.12) 0%, transparent 65%),
-    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
-  background-attachment: fixed;
+  background-color: #E2DFEC;
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
