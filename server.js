@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -202,7 +203,81 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // Catch-all route to serve index.html for frontend routing
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  const indexPath = path.join(__dirname, 'dist', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>HH Goa 2026 Studio - Development Mode</title>
+        <style>
+          body {
+            background-color: #0A0B10;
+            color: #FFFFFF;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            text-align: center;
+            padding: 50px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+          }
+          .card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 40px;
+            border-radius: 16px;
+            display: inline-block;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+          }
+          h2 {
+            color: #FF5A5F;
+            margin-top: 0;
+            font-weight: 800;
+          }
+          p {
+            color: #8E9AA8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+          }
+          a {
+            color: #00F2FE;
+            text-decoration: none;
+            font-weight: 600;
+          }
+          a:hover {
+            text-decoration: underline;
+          }
+          pre {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            font-family: monospace;
+            color: #A7FF37;
+            font-size: 0.9rem;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h2>Production Build Not Found</h2>
+          <p>The production distribution directory (<code>dist/</code>) does not exist yet.</p>
+          <p>To run the app in development mode, please visit the Vite development server:</p>
+          <p><a href="http://localhost:5173/"><strong>http://localhost:5173/</strong></a></p>
+          <p>Or build the project for production deployment by running:</p>
+          <pre>npm run build</pre>
+        </div>
+      </body>
+      </html>
+    `);
+  }
 });
 
 app.listen(PORT, () => {

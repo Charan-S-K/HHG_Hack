@@ -4,16 +4,7 @@
 
 import { FORMATS } from '../formats/formats';
 
-/**
- * Simple pseudo-random generator seeded by string/number for deterministic barcode rendering
- */
-function seededRandom(seed) {
-  let s = seed;
-  return function() {
-    s = (s * 9301 + 49297) % 233280;
-    return s / 233280;
-  };
-}
+
 
 /**
  * Draws the user photo with zoom and pan transformations into a specified bounding box.
@@ -98,32 +89,72 @@ function drawTechGrid(ctx, x, y, width, height, cellSize = 50) {
 }
 
 /**
- * Draws a deterministic procedural barcode for the Builder ID Card.
+ * Draws a real, scanner-readable Code 39 barcode for the Builder ID Card.
  */
 function drawBarcode(ctx, x, y, width, height, seedStr = 'HHG2026') {
-  ctx.save();
-  ctx.fillStyle = '#FFFFFF';
-  
-  let currentX = x;
-  const endX = x + width;
-  
-  let seedNum = 12345;
-  for (let i = 0; i < seedStr.length; i++) {
-    seedNum += seedStr.charCodeAt(i) * (i + 1);
-  }
-  const rand = seededRandom(seedNum);
+  const CODE39_PATTERNS = {
+    '0': '000110100', '1': '100100001', '2': '001100001', '3': '101100000',
+    '4': '000110001', '5': '100110000', '6': '001110000', '7': '000100101',
+    '8': '100100100', '9': '001100100', 'A': '100001001', 'B': '001001001',
+    'C': '101001000', 'D': '000011001', 'E': '100011000', 'F': '001011000',
+    'G': '000001101', 'H': '100001100', 'I': '001001100', 'J': '000011100',
+    'K': '100000011', 'L': '001000011', 'M': '101000010', 'N': '000010011',
+    'O': '100010010', 'P': '001010010', 'Q': '000000111', 'R': '100000110',
+    'S': '001000110', 'T': '000010110', 'U': '110000001', 'V': '011000001',
+    'W': '111000000', 'X': '010010001', 'Y': '110010000', 'Z': '011010000',
+    '-': '010000101', '.': '110000100', ' ': '011000100', '$': '010101000',
+    '/': '010100010', '+': '010001010', '%': '000101010', '*': '010010100'
+  };
 
-  while (currentX < endX) {
-    const r1 = rand();
-    const r2 = rand();
-    const barWidth = r1 > 0.4 ? (r2 > 0.5 ? 4 : 2) : 1;
-    const spaceWidth = r1 > 0.4 ? (r2 > 0.5 ? 3 : 1) : 2;
-    
-    if (currentX + barWidth <= endX) {
-      ctx.fillRect(currentX, y, barWidth, height);
+  const sanitized = seedStr.replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'PASS';
+  const barcodeText = `HHG2026-${sanitized}-SECURE`;
+  const barcodeData = `*${barcodeText}*`;
+
+  ctx.save();
+  // Clear the barcode region with a solid white background (critical for scanners)
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(x - 15, y - 5, width + 30, height + 10);
+
+  const W_ratio = 2.0;
+  const unitsPerChar = 3 * W_ratio + 6;
+  const totalUnits = barcodeData.length * unitsPerChar + (barcodeData.length - 1);
+
+  // Dynamically calculate N (narrow element width) to be at least 1 pixel
+  let N = Math.floor(width / totalUnits);
+  if (N < 1) N = 1;
+  const W = W_ratio * N;
+
+  const actualWidth = barcodeData.length * (3 * W + 6 * N) + (barcodeData.length - 1) * N;
+  
+  // Center the barcode inside the white rectangle
+  const startX = x + (width - actualWidth) / 2;
+
+  ctx.fillStyle = '#000000'; // Draw black bars on the white background
+  let currentX = startX;
+
+  for (let i = 0; i < barcodeData.length; i++) {
+    const char = barcodeData[i];
+    const pattern = CODE39_PATTERNS[char] || CODE39_PATTERNS[' '];
+
+    for (let j = 0; j < 9; j++) {
+      const isBar = (j % 2 === 0);
+      const isWide = (pattern[j] === '1');
+      const w = isWide ? W : N;
+
+      if (isBar) {
+        // Round to exact integer coordinates to prevent antialiasing blur
+        const drawX = Math.round(currentX);
+        const drawW = Math.round(currentX + w) - drawX;
+        ctx.fillRect(drawX, y, drawW, height);
+      }
+      currentX += w;
     }
-    currentX += barWidth + spaceWidth;
+
+    if (i < barcodeData.length - 1) {
+      currentX += N;
+    }
   }
+
   ctx.restore();
 }
 
@@ -375,37 +406,53 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
     nameFontSize -= 2;
     ctx.font = `800 ${nameFontSize}px "Outfit", sans-serif`;
   }
-  ctx.fillText(displayName, 65, detailsY + 88);
+  ctx.fillText(displayName, 65, detailsY + 85);
 
-  // Label Role
+  // Label Role (Row 2)
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
   ctx.font = 'bold 15px "Space Mono", monospace';
-  ctx.fillText('STACK / ROLE //', 65, detailsY + 145);
+  ctx.fillText('STACK / ROLE //', 65, detailsY + 135);
 
-  // Role value (auto-scale font size if long)
+  // Role value (auto-scale font size if long - max width expanded to 670px)
   ctx.fillStyle = '#A7FF37'; // Lime accent
   let roleFontSize = 24;
   ctx.font = `bold ${roleFontSize}px "Space Mono", monospace`;
-  while (ctx.measureText(displayRole).width > 420 && roleFontSize > 14) {
+  while (ctx.measureText(displayRole).width > 670 && roleFontSize > 14) {
     roleFontSize -= 1;
     ctx.font = `bold ${roleFontSize}px "Space Mono", monospace`;
   }
-  ctx.fillText(displayRole, 65, detailsY + 182);
+  ctx.fillText(displayRole, 65, detailsY + 172);
 
-  // GitHub handle
+  // Builder Title (Row 3 - Left aligned)
+  if (title) {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.font = 'bold 15px "Space Mono", monospace';
+    ctx.fillText('BUILDER TITLE //', 65, detailsY + 220);
+
+    ctx.fillStyle = '#FF5A5F'; // Coral accent
+    let titleFontSize = 22;
+    ctx.font = `bold ${titleFontSize}px "Space Mono", monospace`;
+    while (ctx.measureText(title).width > 670 && titleFontSize > 14) {
+      titleFontSize -= 1;
+      ctx.font = `bold ${titleFontSize}px "Space Mono", monospace`;
+    }
+    ctx.fillText(title, 65, detailsY + 258);
+  }
+
+  // GitHub handle (Row 4 - Left)
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
   ctx.font = 'bold 15px "Space Mono", monospace';
-  ctx.fillText('GITHUB //', 65, detailsY + 235);
+  ctx.fillText('GITHUB //', 65, detailsY + 305);
   ctx.fillStyle = '#00F2FE'; // Teal accent
   let ghFontSize = 20;
   ctx.font = `bold ${ghFontSize}px "Space Mono", monospace`;
-  while (ctx.measureText(displayGithub).width > 420 && ghFontSize > 12) {
+  while (ctx.measureText(displayGithub).width > 320 && ghFontSize > 12) {
     ghFontSize -= 1;
     ctx.font = `bold ${ghFontSize}px "Space Mono", monospace`;
   }
-  ctx.fillText(displayGithub, 65, detailsY + 268);
+  ctx.fillText(displayGithub, 65, detailsY + 342);
 
-  // Meta details right side: Status & Barcode
+  // Meta details right side: Status (Row 1 - Right)
   ctx.textAlign = 'right';
 
   // Status block
@@ -416,33 +463,22 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   // Verified Badge (Lime)
   ctx.fillStyle = '#A7FF37';
   ctx.font = '800 22px "Outfit", sans-serif';
-  ctx.fillText(status, canvas.width - 65, detailsY + 82);
+  ctx.fillText(status, canvas.width - 65, detailsY + 85);
   
   // Status indicator circle
   ctx.fillStyle = '#A7FF37';
   ctx.beginPath();
   const textLen = ctx.measureText(status).width;
-  ctx.arc(canvas.width - 65 - textLen - 16, detailsY + 75, 7, 0, Math.PI * 2);
+  ctx.arc(canvas.width - 65 - textLen - 16, detailsY + 77, 7, 0, Math.PI * 2);
   ctx.fill();
-
-  // Builder Title (Right side)
-  if (title) {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.font = 'bold 16px "Space Mono", monospace';
-    ctx.fillText('BUILDER TITLE //', canvas.width - 75, detailsY + 150);
-
-    ctx.fillStyle = '#FF5A5F'; // Coral accent
-    ctx.font = 'bold 20px "Space Mono", monospace';
-    ctx.fillText(title, canvas.width - 75, detailsY + 185);
-  }
 
   ctx.restore();
 
-  // 7. Draw Barcode at bottom right
+  // 7. Draw Barcode at bottom right (Row 4 - Right)
   const barcodeWidth = 320;
   const barcodeHeight = 60;
   const barcodeX = canvas.width - 65 - barcodeWidth;
-  const barcodeY = detailsY + 220;
+  const barcodeY = detailsY + 295;
 
   drawBarcode(ctx, barcodeX, barcodeY, barcodeWidth, barcodeHeight, displayName);
   
@@ -451,6 +487,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
   ctx.font = '12px "Space Mono", monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(`HHG2026-${displayName.replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'PASS'}-SECURE`, barcodeX + barcodeWidth / 2, barcodeY + barcodeHeight + 18);
+  const cleanDisplayName = displayName.replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'PASS';
+  ctx.fillText(`HHG2026-${cleanDisplayName}-SECURE`, barcodeX + barcodeWidth / 2, barcodeY + barcodeHeight + 18);
   ctx.restore();
 }
