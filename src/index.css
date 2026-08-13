@@ -99,15 +99,15 @@ button:focus-visible {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-accent-coral) 0%, #d94040 100%);
+  background: linear-gradient(135deg, var(--color-accent-coral) 0%, #6d28d9 100%);
   color: #fff;
-  box-shadow: 0 4px 20px rgba(255, 90, 95, 0.3);
+  box-shadow: 0 4px 20px rgba(157, 78, 221, 0.3);
   letter-spacing: 0.01em;
 }
 
 .btn-primary:not(:disabled):hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(255, 90, 95, 0.4);
+  box-shadow: 0 8px 32px rgba(157, 78, 221, 0.4);
   filter: brightness(1.08);
 }
 

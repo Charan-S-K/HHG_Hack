@@ -198,12 +198,12 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius + 10, 0, Math.PI * 2);
   const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-  gradient.addColorStop(0, '#FF5A5F'); // Coral
-  gradient.addColorStop(0.5, '#00F2FE'); // Teal
-  gradient.addColorStop(1, '#A7FF37'); // Lime
+  gradient.addColorStop(0, '#9D4EDD'); // Purple
+  gradient.addColorStop(0.5, '#6366F1'); // Indigo
+  gradient.addColorStop(1, '#C084FC'); // Lavender
   ctx.strokeStyle = gradient;
   ctx.lineWidth = 12;
-  ctx.shadowColor = 'rgba(0, 242, 254, 0.4)';
+  ctx.shadowColor = 'rgba(157, 78, 221, 0.4)';
   ctx.shadowBlur = 20;
   ctx.stroke();
   ctx.restore();
@@ -218,7 +218,7 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   ctx.restore();
 
   // Technical crosshairs
-  ctx.strokeStyle = 'rgba(0, 242, 254, 0.6)';
+  ctx.strokeStyle = 'rgba(192, 132, 252, 0.6)';
   ctx.lineWidth = 2;
   
   // Top left notch
@@ -245,7 +245,7 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   // Dark background strip for text legibility
   ctx.fillStyle = 'rgba(10, 11, 16, 0.85)';
   ctx.fillRect(centerX - 180, centerY - radius - 28, 360, 56);
-  ctx.strokeStyle = '#FF5A5F';
+  ctx.strokeStyle = '#9D4EDD';
   ctx.lineWidth = 2;
   ctx.strokeRect(centerX - 180, centerY - radius - 28, 360, 56);
   
@@ -262,11 +262,11 @@ export function renderPfp(canvas, img, zoom, panX, panY) {
   // Bottom badge background
   ctx.fillStyle = 'rgba(10, 11, 16, 0.85)';
   ctx.fillRect(centerX - 140, centerY + radius - 26, 280, 52);
-  ctx.strokeStyle = '#00F2FE';
+  ctx.strokeStyle = '#6366F1';
   ctx.lineWidth = 2;
   ctx.strokeRect(centerX - 140, centerY + radius - 26, 280, 52);
 
-  ctx.fillStyle = '#A7FF37'; // Lime accent
+  ctx.fillStyle = '#C084FC'; // Lavender accent
   ctx.fillText('B U I L D E R', centerX, centerY + radius);
   ctx.restore();
 }
@@ -304,7 +304,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.lineWidth = 20;
   ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
 
-  ctx.strokeStyle = 'rgba(255, 90, 95, 0.5)'; // Coral inner border
+  ctx.strokeStyle = 'rgba(157, 78, 221, 0.5)'; // Purple inner border
   ctx.lineWidth = 2;
   ctx.strokeRect(25, 25, canvas.width - 50, canvas.height - 50);
   ctx.restore();
@@ -316,7 +316,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.textAlign = 'center';
   ctx.fillText('HH GOA 2026', canvas.width / 2, 95);
 
-  ctx.fillStyle = '#00F2FE'; // Teal subheader
+  ctx.fillStyle = '#C084FC'; // Lavender subheader
   ctx.font = 'bold 22px "Space Mono", monospace';
   ctx.fillText('BUILDER IDENTITY STUDIO', canvas.width / 2, 135);
   ctx.restore();
@@ -359,12 +359,12 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
 
   // Photo frame border
   ctx.save();
-  ctx.strokeStyle = '#00F2FE';
+  ctx.strokeStyle = '#6366F1';
   ctx.lineWidth = 3;
   ctx.strokeRect(photoX, photoY, photoWidth, photoHeight);
 
   // Technical corners on photo frame
-  ctx.fillStyle = '#FF5A5F';
+  ctx.fillStyle = '#9D4EDD';
   ctx.fillRect(photoX - 6, photoY - 6, 20, 6);
   ctx.fillRect(photoX - 6, photoY - 6, 6, 20);
 
@@ -414,7 +414,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.fillText('STACK / ROLE //', 65, detailsY + 135);
 
   // Role value (auto-scale font size if long - max width expanded to 670px)
-  ctx.fillStyle = '#A7FF37'; // Lime accent
+  ctx.fillStyle = '#C084FC'; // Lavender accent
   let roleFontSize = 24;
   ctx.font = `bold ${roleFontSize}px "Space Mono", monospace`;
   while (ctx.measureText(displayRole).width > 670 && roleFontSize > 14) {
@@ -429,7 +429,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
     ctx.font = 'bold 15px "Space Mono", monospace';
     ctx.fillText('BUILDER TITLE //', 65, detailsY + 220);
 
-    ctx.fillStyle = '#FF5A5F'; // Coral accent
+    ctx.fillStyle = '#9D4EDD'; // Purple accent
     let titleFontSize = 22;
     ctx.font = `bold ${titleFontSize}px "Space Mono", monospace`;
     while (ctx.measureText(title).width > 670 && titleFontSize > 14) {
@@ -443,7 +443,7 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
   ctx.font = 'bold 15px "Space Mono", monospace';
   ctx.fillText('GITHUB //', 65, detailsY + 305);
-  ctx.fillStyle = '#00F2FE'; // Teal accent
+  ctx.fillStyle = '#6366F1'; // Indigo accent
   let ghFontSize = 20;
   ctx.font = `bold ${ghFontSize}px "Space Mono", monospace`;
   while (ctx.measureText(displayGithub).width > 320 && ghFontSize > 12) {
@@ -461,12 +461,12 @@ export function renderBuilderCard(canvas, img, zoom, panX, panY, options = {}) {
   ctx.fillText('STATUS //', canvas.width - 65, detailsY + 45);
 
   // Verified Badge (Lime)
-  ctx.fillStyle = '#A7FF37';
+  ctx.fillStyle = '#C084FC';
   ctx.font = '800 22px "Outfit", sans-serif';
   ctx.fillText(status, canvas.width - 65, detailsY + 85);
   
   // Status indicator circle
-  ctx.fillStyle = '#A7FF37';
+  ctx.fillStyle = '#C084FC';
   ctx.beginPath();
   const textLen = ctx.measureText(status).width;
   ctx.arc(canvas.width - 65 - textLen - 16, detailsY + 77, 7, 0, Math.PI * 2);
